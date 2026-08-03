@@ -240,6 +240,36 @@
             color: var(--blue);
             padding: 8px 12px;
         }
+
+        .instructions {
+            background: #fff8e1;
+            border: 1px solid #ffcc02;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        .instructions summary {
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--gray-900);
+        }
+        .instructions ol {
+            margin: 12px 0 0 20px;
+            line-height: 1.8;
+        }
+        .instructions .warn {
+            color: var(--red);
+            font-weight: 600;
+        }
+        .instructions .example {
+            background: #f5f5f5;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 8px 0;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -258,6 +288,25 @@
             </select>
         </div>
     </div>
+
+    <details class="instructions" open>
+        <summary>Инструкция</summary>
+        <p class="warn">Работает ТОЛЬКО с данными по выручке за весь квартал</p>
+        <ol>
+            <li>Для прогноза дотекания выберите нужный квартал в отчёте</li>
+            <li>Перейдите во вкладку <strong>Когорты</strong></li>
+            <li>Возьмите ТОЛЬКО ту выручку, которая попала в этот квартал</li>
+            <li>Суммируйте выручку по месяцам:
+                <div class="example">
+                    <strong>1 месяц</strong> — суммируем апрель + май + июнь<br>
+                    <strong>2 месяц</strong> — суммируем май + июнь<br>
+                    <strong>3 месяц</strong> — берём только май
+                </div>
+                <em>Данная логика работает на все кварталы (только там будут свои месяцы)</em>
+            </li>
+            <li>Внесите полученные суммы в поля «Выручка» и «Расходы» для Бренда и/или Небренда</li>
+        </ol>
+    </details>
 
     <div class="two-col" id="input-sections">
         <div class="brand-section" id="brand-section">
