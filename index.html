@@ -462,16 +462,19 @@ function formatMoney(amount) {
 function renderMonthsGrid(containerId, prefix) {
     const grid = document.getElementById(containerId);
     grid.innerHTML = '';
+    const revCounts = [3, 2, 1];
     for (let i = 0; i < 3; i++) {
         const cell = document.createElement('div');
         cell.className = 'month-cell';
-        cell.innerHTML =
-            '<div class="month-name">Месяц ' + (i + 1) + '</div>' +
-            '<label class="field-label">Выручка</label>' +
-            '<input type="number" id="' + prefix + 'rev-' + i + '" placeholder="0" oninput="calculate()">' +
-            '<label class="field-label">Расходы</label>' +
-            '<input type="number" id="' + prefix + 'exp-' + i + '" placeholder="0" oninput="calculate()">' +
-            '<div class="month-result" id="' + prefix + 'result-' + i + '">—</div>';
+        let html = '<div class="month-name">Месяц ' + (i + 1) + '</div>';
+        html += '<label class="field-label">Выручка</label>';
+        for (let j = 0; j < revCounts[i]; j++) {
+            html += '<input type="number" id="' + prefix + 'rev-' + i + '-' + j + '" placeholder="0" oninput="calculate()" style="margin-bottom:4px;">';
+        }
+        html += '<label class="field-label">Расходы</label>';
+        html += '<input type="number" id="' + prefix + 'exp-' + i + '" placeholder="0" oninput="calculate()">';
+        html += '<div class="month-result" id="' + prefix + 'result-' + i + '">—</div>';
+        cell.innerHTML = html;
         grid.appendChild(cell);
     }
 }
@@ -479,10 +482,15 @@ function renderMonthsGrid(containerId, prefix) {
 function calcForSection(prefix, m1, m2, m3) {
     const coefs = [m1, m2, m3];
     const revenues = [0, 0, 0], expenses = [0, 0, 0];
+    const revCounts = [3, 2, 1];
     for (let i = 0; i < 3; i++) {
-        const r = parseFloat(document.getElementById(prefix + 'rev-' + i)?.value);
+        let sum = 0;
+        for (let j = 0; j < revCounts[i]; j++) {
+            const r = parseFloat(document.getElementById(prefix + 'rev-' + i + '-' + j)?.value);
+            if (isFinite(r)) sum += r;
+        }
+        revenues[i] = sum;
         const e = parseFloat(document.getElementById(prefix + 'exp-' + i)?.value);
-        if (isFinite(r)) revenues[i] = r;
         if (isFinite(e)) expenses[i] = e;
     }
 
@@ -522,7 +530,7 @@ function calculate() {
     const nonbrandM2 = parseFloat(document.getElementById('nonbrand-m2').value) || 1.0;
     const nonbrandM3 = parseFloat(document.getElementById('nonbrand-m3').value) || 1.0;
 
-    const brandHint0 = document.getElementById('brandrev-0');
+    const brandHint0 = document.getElementById('brandrev-0-0');
     if (!brandHint0) {
         renderMonthsGrid('brand-months-grid', 'brand');
         renderMonthsGrid('nonbrand-months-grid', 'nonbrand');
