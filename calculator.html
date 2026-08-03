@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор прогноза выручки — Контур</title>
+    <style>
+        :root {
+            --blue: #3072c4;
+            --green: #3a9b39;
+            --red: #d4351c;
+            --gray-100: #f5f5f5;
+            --gray-200: #e6e6e6;
+            --gray-500: #8b8b8b;
+            --gray-700: #4a4a4a;
+            --gray-900: #1a1a1a;
+            --border: #d9d9d9;
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f6f8;
+            color: var(--gray-900);
+            line-height: 1.5;
+            padding: 24px;
+        }
+        .container { max-width: 1300px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            border-radius: 8px;
+            padding: 24px 32px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        h1 { font-size: 24px; font-weight: 600; }
+        .version-badge {
+            font-size: 11px;
+            color: var(--gray-500);
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+        .product-selector { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .product-selector select {
+            padding: 6px 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            min-width: 200px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 24px 32px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--blue);
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        .brand-section {
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 16px;
+            background: var(--gray-100);
+        }
+        .brand-section .section-title {
+            font-size: 15px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom-width: 1px;
+        }
+
+        .coef-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .coef-cell label {
+            display: block;
+            font-size: 11px;
+            color: var(--gray-500);
+            margin-bottom: 2px;
+        }
+        .coef-cell input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .months-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 600px) {
+            .months-grid { grid-template-columns: 1fr; }
+        }
+        .month-cell {
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 12px;
+            background: white;
+        }
+        .month-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .field-label {
+            display: block;
+            font-size: 10px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            margin-top: 6px;
+            margin-bottom: 2px;
+            letter-spacing: 0.05em;
+        }
+        .month-cell input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+        .month-cell input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        .month-result {
+            font-size: 11px;
+            color: var(--gray-700);
+            margin-top: 6px;
+            line-height: 1.3;
+        }
+        .month-result strong { color: var(--blue); }
+
+        .total-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .total-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 500px) {
+            .total-grid { grid-template-columns: 1fr; }
+        }
+        .total-card {
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+        }
+        .total-card.normal { background: var(--gray-100); }
+        .total-card.highlight { background: var(--blue); color: white; }
+        .total-card .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+        .total-card .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .total-card.highlight .value { color: white; }
+        .total-card .value.positive { color: var(--green); }
+        .total-card .value.negative { color: var(--red); }
+        .total-card.highlight .value.positive { color: #90ee90; }
+        .total-card.highlight .value.negative { color: #ff8a80; }
+
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .detail-table th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 11px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--gray-200);
+        }
+        .detail-table th.num { text-align: right; }
+        .detail-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 13px;
+        }
+        .detail-table td.num {
+            text-align: right;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        .detail-table .month-cell-label { font-weight: 500; color: var(--gray-700); }
+        .detail-table .projected-val { color: var(--blue); font-weight: 600; }
+        .detail-table .total-row {
+            background: var(--gray-100);
+            font-weight: 600;
+        }
+        .detail-table .total-row td { border-bottom: none; }
+        .detail-table .section-row td {
+            background: #eef3fb;
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--blue);
+            padding: 8px 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <div class="header-top">
+            <h1>Калькулятор прогноза выручки</h1>
+            <div class="version-badge">v10.1 · 2026-08-02</div>
+        </div>
+
+        <div class="product-selector">
+            <label for="product"><strong>Продукт:</strong></label>
+            <select id="product" onchange="onProductChange()">
+                <option value="">— выберите —</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="two-col" id="input-sections">
+        <div class="brand-section" id="brand-section">
+            <div class="section-title">Бренд</div>
+            <div class="coef-grid">
+                <div class="coef-cell">
+                    <label>m1 — 1 мес</label>
+                    <input type="number" id="brand-m1" step="0.0001" value="1.00" onchange="calculate()">
+                </div>
+                <div class="coef-cell">
+                    <label>m2 — 2 мес</label>
+                    <input type="number" id="brand-m2" step="0.0001" value="1.00" onchange="calculate()">
+                </div>
+                <div class="coef-cell">
+                    <label>m3 — 3 мес</label>
+                    <input type="number" id="brand-m3" step="0.0001" value="1.00" onchange="calculate()">
+                </div>
+            </div>
+            <div class="months-grid" id="brand-months-grid"></div>
+        </div>
+
+        <div class="brand-section" id="nonbrand-section">
+            <div class="section-title">Небренд</div>
+            <div class="coef-grid">
+                <div class="coef-cell">
+                    <label>m1 — 1 мес</label>
+                    <input type="number" id="nonbrand-m1" step="0.0001" value="1.00" onchange="calculate()">
+                </div>
+                <div class="coef-cell">
+                    <label>m2 — 2 мес</label>
+                    <input type="number" id="nonbrand-m2" step="0.0001" value="1.00" onchange="calculate()">
+                </div>
+                <div class="coef-cell">
+                    <label>m3 — 3 мес</label>
+                    <input type="number" id="nonbrand-m3" step="0.0001" value="1.00" onchange="calculate()">
+                </div>
+            </div>
+            <div class="months-grid" id="nonbrand-months-grid"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title" id="total-title">Итоговые показатели</div>
+        <div class="total-grid">
+            <div class="total-card normal">
+                <div class="label">Выручка</div>
+                <div class="value" id="total-revenue">0 ₽</div>
+            </div>
+            <div class="total-card highlight">
+                <div class="label">Прогноз выручки</div>
+                <div class="value" id="total-projected">0 ₽</div>
+            </div>
+            <div class="total-card normal">
+                <div class="label">Расходы</div>
+                <div class="value" id="total-expense">0 ₽</div>
+            </div>
+            <div class="total-card highlight">
+                <div class="label">ROMI</div>
+                <div class="value" id="total-romi">0%</div>
+            </div>
+        </div>
+
+        <table class="detail-table">
+            <thead>
+                <tr>
+                    <th>Месяц</th>
+                    <th class="num">Выручка</th>
+                    <th class="num">Коэф.</th>
+                    <th class="num">Прогноз выручки</th>
+                    <th class="num">Расходы</th>
+                </tr>
+            </thead>
+            <tbody id="detail-tbody"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+'use strict';
+
+const PRODUCT_COEFFICIENTS = {
+    'uc': {
+        name: 'УЦ',
+        brand:    { m1: 1.032072206, m2: 1.037678901, m3: 1.127302547 },
+        nonbrand: { m1: 1.024840443, m2: 1.033489203, m3: 1.1423644 },
+    },
+    'focus': {
+        name: 'Фокус',
+        brand:    { m1: 1.036631251, m2: 1.063643781, m3: 1.22388603 },
+        nonbrand: { m1: 1.360356258, m2: 1.386586508, m3: 1.751255086 },
+    },
+    'compass': {
+        name: 'Компас',
+        brand:    { m1: 1.031101199, m2: 1.058379451, m3: 1.262102213 },
+        nonbrand: { m1: 1.077547552, m2: 1.111295048, m3: 1.33403168 },
+    },
+    'talk': {
+        name: 'Толк',
+        brand:    { m1: 1.068671928, m2: 1.095866543, m3: 1.374425529 },
+        nonbrand: { m1: 1.277313419, m2: 1.356419003, m3: 1.655314713 },
+    },
+    'market_ofd': {
+        name: 'Маркет+ОФД',
+        brand:    { m1: 1.038535679, m2: 1.049409363, m3: 1.217238619 },
+        nonbrand: { m1: 1.033181856, m2: 1.058536928, m3: 1.336842829 },
+    },
+    'diadoc': {
+        name: 'Диадок',
+        brand:    { m1: 1.082649794, m2: 1.095867691, m3: 1.264833334 },
+        nonbrand: { m1: 1.075489927, m2: 1.085417861, m3: 1.280150627 },
+    },
+    'logistics': {
+        name: 'Логистика',
+        brand:    { m1: 1.097075769, m2: 1.103515354, m3: 2.157889409 },
+        nonbrand: { m1: 1.041234004, m2: 1.041234004, m3: 1.05106422 },
+    },
+    'marking': {
+        name: 'Маркировка',
+        brand:    { m1: 1.008452836, m2: 1.087442403, m3: 1.342980034 },
+        nonbrand: { m1: 1.077195829, m2: 1.140301605, m3: 1.500791479 },
+    },
+    'zakupki': {
+        name: 'Закупки',
+        brand:    { m1: 1.028384419, m2: 1.036392053, m3: 1.151335251 },
+        nonbrand: { m1: 1.072302524, m2: 1.120266716, m3: 1.33522452 },
+    },
+    'brand': {
+        name: 'Бренд',
+        brand:    { m1: 1.049049872, m2: 1.075921392, m3: 1.229271276 },
+        nonbrand: null,
+    },
+    'elba': {
+        name: 'Эльба',
+        brand:    { m1: 1.356683493, m2: 1.47185328,  m3: 2.248532312 },
+        nonbrand: { m1: 1.339655126, m2: 1.420374171, m3: 1.98127994 },
+    },
+    'otel_fms': {
+        name: 'Отель+ФМС',
+        brand:    { m1: 1.063608504, m2: 1.105361988, m3: 1.236716127 },
+        nonbrand: { m1: 1.028453474, m2: 1.03553196,  m3: 1.303938302 },
+    },
+};
+
+function formatMoney(amount) {
+    if (!isFinite(amount)) amount = 0;
+    return new Intl.NumberFormat('ru-RU').format(Math.round(amount)) + ' ₽';
+}
+
+function renderMonthsGrid(containerId, prefix) {
+    const grid = document.getElementById(containerId);
+    grid.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'month-cell';
+        cell.innerHTML =
+            '<div class="month-name">Месяц ' + (i + 1) + '</div>' +
+            '<label class="field-label">Выручка</label>' +
+            '<input type="number" id="' + prefix + 'rev-' + i + '" placeholder="0" oninput="calculate()">' +
+            '<label class="field-label">Расходы</label>' +
+            '<input type="number" id="' + prefix + 'exp-' + i + '" placeholder="0" oninput="calculate()">' +
+            '<div class="month-result" id="' + prefix + 'result-' + i + '">—</div>';
+        grid.appendChild(cell);
+    }
+}
+
+function calcForSection(prefix, m1, m2, m3) {
+    const coefs = [m1, m2, m3];
+    const revenues = [0, 0, 0], expenses = [0, 0, 0];
+    for (let i = 0; i < 3; i++) {
+        const r = parseFloat(document.getElementById(prefix + 'rev-' + i)?.value);
+        const e = parseFloat(document.getElementById(prefix + 'exp-' + i)?.value);
+        if (isFinite(r)) revenues[i] = r;
+        if (isFinite(e)) expenses[i] = e;
+    }
+
+    let totalRev = 0, totalExp = 0, totalProjected = 0;
+    const monthData = [];
+
+    for (let i = 0; i < 3; i++) {
+        const projected = revenues[i] * coefs[i];
+
+        const resultEl = document.getElementById(prefix + 'result-' + i);
+        if (resultEl) {
+            resultEl.innerHTML = '× ' + coefs[i].toFixed(4) + ' = <strong>' + formatMoney(projected) + '</strong>';
+        }
+
+        totalRev += revenues[i];
+        totalExp += expenses[i];
+        totalProjected += projected;
+
+        monthData.push({
+            name: 'Месяц ' + (i + 1),
+            revenue: revenues[i],
+            coef: coefs[i],
+            projected: projected,
+            expense: expenses[i],
+        });
+    }
+
+    return { totalRev, totalExp, totalProjected, monthData };
+}
+
+function calculate() {
+    const brandM1 = parseFloat(document.getElementById('brand-m1').value) || 1.0;
+    const brandM2 = parseFloat(document.getElementById('brand-m2').value) || 1.0;
+    const brandM3 = parseFloat(document.getElementById('brand-m3').value) || 1.0;
+
+    const nonbrandM1 = parseFloat(document.getElementById('nonbrand-m1').value) || 1.0;
+    const nonbrandM2 = parseFloat(document.getElementById('nonbrand-m2').value) || 1.0;
+    const nonbrandM3 = parseFloat(document.getElementById('nonbrand-m3').value) || 1.0;
+
+    const brandHint0 = document.getElementById('brandrev-0');
+    if (!brandHint0) {
+        renderMonthsGrid('brand-months-grid', 'brand');
+        renderMonthsGrid('nonbrand-months-grid', 'nonbrand');
+    }
+
+    const brandRes = calcForSection('brand', brandM1, brandM2, brandM3);
+    const nonbrandRes = calcForSection('nonbrand', nonbrandM1, nonbrandM2, nonbrandM3);
+
+    const totalRev = brandRes.totalRev + nonbrandRes.totalRev;
+    const totalExp = brandRes.totalExp + nonbrandRes.totalExp;
+    const totalProjected = brandRes.totalProjected + nonbrandRes.totalProjected;
+
+    document.getElementById('total-revenue').textContent = formatMoney(totalRev);
+    document.getElementById('total-projected').textContent = formatMoney(totalProjected);
+    document.getElementById('total-expense').textContent = formatMoney(totalExp);
+
+    const romiEl = document.getElementById('total-romi');
+    if (totalExp > 0) {
+        const romi = ((totalProjected - totalExp) / totalExp) * 100;
+        romiEl.textContent = romi.toFixed(1) + '%';
+        romiEl.className = 'value ' + (romi >= 0 ? 'positive' : 'negative');
+    } else {
+        romiEl.textContent = '—';
+        romiEl.className = 'value';
+    }
+
+    const tbody = document.getElementById('detail-tbody');
+    tbody.innerHTML = '';
+
+    function renderSectionRows(label, data) {
+        const sectionTr = document.createElement('tr');
+        sectionTr.innerHTML = '<td class="section-row" colspan="5">' + label + '</td>';
+        tbody.appendChild(sectionTr);
+
+        for (let i = 0; i < 3; i++) {
+            const m = data[i];
+            const tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td class="month-cell-label">' + m.name + '</td>' +
+                '<td class="num">' + formatMoney(m.revenue) + '</td>' +
+                '<td class="num">× ' + m.coef.toFixed(4) + '</td>' +
+                '<td class="num projected-val">' + formatMoney(m.projected) + '</td>' +
+                '<td class="num">' + formatMoney(m.expense) + '</td>';
+            tbody.appendChild(tr);
+        }
+    }
+
+    renderSectionRows('Бренд', brandRes.monthData);
+    renderSectionRows('Небренд', nonbrandRes.monthData);
+
+    const totalTr = document.createElement('tr');
+    totalTr.className = 'total-row';
+    totalTr.innerHTML =
+        '<td class="month-cell-label">ИТОГО</td>' +
+        '<td class="num">' + formatMoney(totalRev) + '</td>' +
+        '<td class="num">—</td>' +
+        '<td class="num projected-val">' + formatMoney(totalProjected) + '</td>' +
+        '<td class="num">' + formatMoney(totalExp) + '</td>';
+    tbody.appendChild(totalTr);
+}
+
+function onProductChange() {
+    const product = document.getElementById('product').value;
+    const nonbrandSection = document.getElementById('nonbrand-section');
+
+    if (!product) {
+        nonbrandSection.style.display = '';
+        return;
+    }
+
+    const coefs = PRODUCT_COEFFICIENTS[product];
+    if (!coefs) return;
+
+    document.getElementById('brand-m1').value = coefs.brand.m1.toFixed(4);
+    document.getElementById('brand-m2').value = coefs.brand.m2.toFixed(4);
+    document.getElementById('brand-m3').value = coefs.brand.m3.toFixed(4);
+
+    if (coefs.nonbrand === null) {
+        nonbrandSection.style.display = 'none';
+    } else {
+        nonbrandSection.style.display = '';
+        document.getElementById('nonbrand-m1').value = coefs.nonbrand.m1.toFixed(4);
+        document.getElementById('nonbrand-m2').value = coefs.nonbrand.m2.toFixed(4);
+        document.getElementById('nonbrand-m3').value = coefs.nonbrand.m3.toFixed(4);
+    }
+
+    const totalTitle = document.getElementById('total-title');
+    if (totalTitle) {
+        totalTitle.textContent = 'Итоговые показатели — ' + coefs.name;
+    }
+
+    calculate();
+}
+
+function fillProductSelector() {
+    const select = document.getElementById('product');
+    for (const [key, val] of Object.entries(PRODUCT_COEFFICIENTS)) {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = val.name;
+        select.appendChild(opt);
+    }
+}
+
+function init() {
+    fillProductSelector();
+    calculate();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
